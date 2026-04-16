@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Retro Tic-Tac-Toe</title>
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --accent-x: #ff4757;
+            --accent-o: #2f3542;
+            --border-radius: 12px;
+            --board-bg: #ccc;
+            --cell-active: #eee;
+            --btn-bg: #2f3542;
+            --btn-text: #ffffff;
+        }
+
+        body.dark {
+            --bg-color: #1a1a1a;
+            --card-bg: #2d2d2d;
+            --text-color: #f0f2f5;
+            --accent-o: #a4b0be;
+            --board-bg: #444;
+            --cell-active: #3d3d3d;
+            --btn-bg: #4b6584;
+        }
+
+        * {
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #app-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: 2px solid var(--text-color);
+            color: var(--text-color);
+            padding: 4px 10px;
+            font-size: 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .score-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .score-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: 5px;
+        }
+
+        .score-value {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-gap: 10px;
+            background-color: var(--board-bg);
+            padding: 10px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+        }
+
+        .cell {
+            background-color: var(--card-bg);
+            aspect-ratio: 1 / 1;
+            height: 100px; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .cell:active {
+            background-color: var(--cell-active);
+        }
+
+        .cell.x { color: var(--accent-x); }
+        .cell.o { color: var(--accent-o); }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        button.main-btn {
+            padding: 12px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 25px;
+            background-color: var(--btn-bg);
+            color: var(--btn-text);
+            cursor: pointer;
+            font-weight: 600;
+            -webkit-appearance: none;
+        }
+
+        button.secondary {
+            background-color: #747d8c;
+        }
+
+        .status {
+            margin-bottom: 15px;
+            font-weight: 500;
+            height: 24px;
+        }
+
+        .fullscreen-hint {
+            font-size: 11px;
+            color: #999;
+            margin-top: 10px;
+        }
+
+        #message-box {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--card-bg);
+            color: var(--text-color);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            z-index: 100;
+            text-align: center;
+            width: 80%;
+            max-width: 300px;
+        }
+
+        #overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 99;
+        }
+
+        .mode-selector {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .mode-btn {
+            background: #ddd;
+            color: #333;
+            font-size: 12px;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 15px;
+        }
+
+        .mode-btn.active {
+            background: var(--btn-bg);
+            color: #fff;
+        }
+    </style>
+</head>
+<body id="body">
+
+    <div id="app-container">
+        <div class="header">
+            <h1>Tic-Tac-Toe</h1>
+            <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">DARK MODE</button>
+        </div>
+
+        <div class="mode-selector">
+            <button class="mode-btn active" id="btn-vs-ai" onclick="setMode('ai')">VS COMPUTER</button>
+            <button class="mode-btn" id="btn-vs-friend" onclick="setMode('friend')">VS FRIEND</button>
+        </div>
+
+        <div class="score-board">
+            <div class="score-item">
+                <span class="score-label">Player X</span>
+                <span class="score-value" id="score-x">0</span>
+            </div>
+            <div class="score-item">
+                <span class="score-label">Draws</span>
+                <span class="score-value" id="score-draw">0</span>
+            </div>
+            <div class="score-item">
+                <span class="score-label">Player O</span>
+                <span class="score-value" id="score-o">0</span>
+            </div>
+        </div>
+
+        <div class="status" id="status">Player X's Turn</div>
+
+        <div class="game-board" id="board">
+            <div class="cell" onclick="makeMove(0)"></div>
+            <div class="cell" onclick="makeMove(1)"></div>
+            <div class="cell" onclick="makeMove(2)"></div>
+            <div class="cell" onclick="makeMove(3)"></div>
+            <div class="cell" onclick="makeMove(4)"></div>
+            <div class="cell" onclick="makeMove(5)"></div>
+            <div class="cell" onclick="makeMove(6)"></div>
+            <div class="cell" onclick="makeMove(7)"></div>
+            <div class="cell" onclick="makeMove(8)"></div>
+        </div>
+
+        <div class="controls">
+            <button class="main-btn" onclick="resetGame()">Reset Board</button>
+            <button class="main-btn secondary" onclick="toggleFullScreen()">Toggle Fullscreen</button>
+        </div>
+
+        <p class="fullscreen-hint">On iPad: Add to Home Screen for true full screen.</p>
+    </div>
+
+    <div id="overlay"></div>
+    <div id="message-box">
+        <h2 id="msg-text">X Wins!</h2>
+        <button class="main-btn" onclick="closeMessage()">Play Again</button>
+    </div>
+
+    <script>
+        let board = ["", "", "", "", "", "", "", "", ""];
+        let currentPlayer = "X";
+        let gameActive = true;
+        let gameMode = "ai"; 
+        let scores = { X: 0, O: 0, draw: 0 };
+
+        const statusDisplay = document.getElementById('status');
+        const cells = document.querySelectorAll('.cell');
+        const scoreX = document.getElementById('score-x');
+        const scoreO = document.getElementById('score-o');
+        const scoreDraw = document.getElementById('score-draw');
+
+        const winConditions = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],
+            [0, 3, 6], [1, 4, 7], [2, 5, 8],
+            [0, 4, 8], [2, 4, 6]
+        ];
+
+        // Theme logic
+        function toggleTheme() {
+            const body = document.getElementById('body');
+            const btn = document.getElementById('theme-btn');
+            body.classList.toggle('dark');
+            
+            const isDark = body.classList.contains('dark');
+            btn.innerText = isDark ? "LIGHT MODE" : "DARK MODE";
+            
+            if (window.localStorage) {
+                localStorage.setItem('ttt_theme', isDark ? 'dark' : 'light');
+            }
+        }
+
+        // Initialize theme
+        if (window.localStorage && localStorage.getItem('ttt_theme') === 'dark') {
+            document.getElementById('body').classList.add('dark');
+            document.getElementById('theme-btn').innerText = "LIGHT MODE";
+        }
+
+        function setMode(mode) {
+            gameMode = mode;
+            document.getElementById('btn-vs-ai').className = mode === 'ai' ? 'mode-btn active' : 'mode-btn';
+            document.getElementById('btn-vs-friend').className = mode === 'friend' ? 'mode-btn active' : 'mode-btn';
+            resetGame();
+        }
+
+        function makeMove(index) {
+            if (board[index] !== "" || !gameActive) return;
+
+            executeMove(index, currentPlayer);
+
+            if (gameActive && gameMode === 'ai' && currentPlayer === 'O') {
+                setTimeout(aiMove, 400);
+            }
+        }
+
+        function executeMove(index, player) {
+            board[index] = player;
+            cells[index].innerText = player;
+            cells[index].classList.add(player.toLowerCase());
+
+            checkResult();
+            
+            if (gameActive) {
+                currentPlayer = currentPlayer === "X" ? "O" : "X";
+                statusDisplay.innerText = "Player " + currentPlayer + "'s Turn";
+            }
+        }
+
+        function aiMove() {
+            if (!gameActive) return;
+            let move = findBestMove('O') || findBestMove('X');
+            if (move === null && board[4] === "") move = 4;
+            if (move === null) {
+                let available = [];
+                board.forEach((val, idx) => { if(val === "") available.push(idx); });
+                move = available[Math.floor(Math.random() * available.length)];
+            }
+            if (move !== null) executeMove(move, 'O');
+        }
+
+        function findBestMove(player) {
+            for (let condition of winConditions) {
+                let values = condition.map(i => board[i]);
+                let playerCount = values.filter(v => v === player).length;
+                let emptyCount = values.filter(v => v === "").length;
+                if (playerCount === 2 && emptyCount === 1) return condition[values.indexOf("")];
+            }
+            return null;
+        }
+
+        function checkResult() {
+            let roundWon = false;
+            let winner = "";
+
+            for (let i = 0; i < winConditions.length; i++) {
+                const [a, b, c] = winConditions[i];
+                if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                    roundWon = true;
+                    winner = board[a];
+                    break;
+                }
+            }
+
+            if (roundWon) {
+                scores[winner]++;
+                updateScores();
+                showResult("Player " + winner + " Wins!");
+                gameActive = false;
+                return;
+            }
+
+            if (!board.includes("")) {
+                scores.draw++;
+                updateScores();
+                showResult("It's a Draw!");
+                gameActive = false;
+                return;
+            }
+        }
+
+        function updateScores() {
+            scoreX.innerText = scores.X;
+            scoreO.innerText = scores.O;
+            scoreDraw.innerText = scores.draw;
+        }
+
+        function showResult(text) {
+            document.getElementById('msg-text').innerText = text;
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('message-box').style.display = 'block';
+        }
+
+        function closeMessage() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('message-box').style.display = 'none';
+            resetGame();
+        }
+
+        function resetGame() {
+            board = ["", "", "", "", "", "", "", "", ""];
+            gameActive = true;
+            currentPlayer = "X";
+            statusDisplay.innerText = "Player X's Turn";
+            cells.forEach(cell => {
+                cell.innerText = "";
+                cell.className = "cell";
+            });
+        }
+
+        function toggleFullScreen() {
+            var doc = window.document;
+            var docEl = doc.documentElement;
+            var requestFullScreen = docEl.requestFullscreen || docEl.webkitRequestFullScreen;
+            var cancelFullScreen = doc.exitFullscreen || doc.webkitExitFullscreen;
+
+            if(!doc.fullscreenElement && !doc.webkitFullscreenElement) {
+                if (requestFullScreen) requestFullScreen.call(docEl);
+                else window.scrollTo(0, 1);
+            } else {
+                if (cancelFullScreen) cancelFullScreen.call(doc);
+            }
+        }
+
+        window.onload = function() {
+            setTimeout(function() { window.scrollTo(0, 1); }, 100);
+        };
+    </script>
+</body>
+</html>
